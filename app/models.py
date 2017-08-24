@@ -28,6 +28,10 @@ if 'LDAP_TYPE' in app.config.keys():
     LDAP_TYPE = app.config['LDAP_TYPE']
     LDAP_FILTER = app.config['LDAP_FILTER']
     LDAP_USERNAMEFIELD = app.config['LDAP_USERNAMEFIELD']
+    LDAP_DNS_SEARCH_BASE = app.config['LDAP_DNS_SEARCH_BASE']
+    LDAP_USER_MEMBER = app.config['LDAP_USER_MEMBER']
+    LDAP_CN = app.config['LDAP_CN']
+    
 else:
     LDAP_TYPE = False
 
