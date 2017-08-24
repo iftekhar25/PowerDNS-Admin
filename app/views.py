@@ -298,6 +298,8 @@ def dashboard():
 @login_required
 def domain(domain_name):
     r = Record()
+    d = Domain()
+    d.update_domain(domain_name)
     domain = Domain.query.filter(Domain.name == domain_name).first()
     if domain:
         # query domain info from PowerDNS API
