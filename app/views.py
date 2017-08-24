@@ -236,7 +236,7 @@ def login():
                     return render_template('login.html', error='Invalid credentials', ldap_enabled=LDAP_ENABLED, login_title=LOGIN_TITLE, basic_enabled=BASIC_ENABLED, signup_enabled=SIGNUP_ENABLED)
             else:
                 return render_template('login.html', error='Token required', ldap_enabled=LDAP_ENABLED, login_title=LOGIN_TITLE, basic_enabled=BASIC_ENABLED, signup_enabled=SIGNUP_ENABLED)
-	
+
 	#User set permissions
 	user.set_permissions()
         login_user(user, remember = remember_me)
@@ -278,7 +278,7 @@ def dashboard():
     else:
         #domains = User(id=current_user.id).get_domain()
 	domains =  Domain.query.all()
-	
+
     # stats for dashboard
     domain_count = Domain.query.count()
     users = User.query.all()

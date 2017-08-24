@@ -31,7 +31,7 @@ if 'LDAP_TYPE' in app.config.keys():
     LDAP_DNS_SEARCH_BASE = app.config['LDAP_DNS_SEARCH_BASE']
     LDAP_USER_MEMBER = app.config['LDAP_USER_MEMBER']
     LDAP_CN = app.config['LDAP_CN']
-    
+
 else:
     LDAP_TYPE = False
 
@@ -241,7 +241,7 @@ class User(db.Model):
 
         logging.error('Unsupported authentication method')
         return False
-    
+
     def set_permissions(self):
         """
         Set user's read write permissions
@@ -250,7 +250,7 @@ class User(db.Model):
         searchFilter = "%s=%s" % (LDAP_CN, self.username)
         searchScope = ldap.SCOPE_SUBTREE
         retrieveAttributes = None
-        
+
         ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
         l = ldap.initialize(LDAP_URI)
         l.set_option(ldap.OPT_REFERRALS, 0)
@@ -259,7 +259,7 @@ class User(db.Model):
         l.set_option( ldap.OPT_X_TLS_DEMAND, True )
         l.set_option( ldap.OPT_DEBUG_LEVEL, 255 )
         l.protocol_version = ldap.VERSION3
-        
+
         try:
             ldap_result_id = l.search(baseDN, searchScope, searchFilter, retrieveAttributes)
             result_set = []
@@ -270,17 +270,17 @@ class User(db.Model):
                 else:
                     if result_type == ldap.RES_SEARCH_ENTRY:
                         result_set.append(result_data)
-            
+
             members = result_set[0][0][1]['member']
-            write = 0		
+            write = 0
             for member in members:
                 #Slice the string to remove 'cn='
-                member = member[3:] 
+                member = member[3:]
                 logging.info('User LDAP Member cn "%s"' % member)
                 if (member == LDAP_USER_MEMBER):
                     write = 1
                     break
-            
+
             user_role_name = 'Administrator' if write else 'User'
             role = Role.query.filter(Role.name==user_role_name).first()
 
@@ -296,7 +296,7 @@ class User(db.Model):
                 logging.error('Cannot change user role in DB')
                 logging.debug(traceback.format_exc())
                 return False
-			
+
         except ldap.LDAPError, e:
             logging.error(e)
             raise
@@ -307,10 +307,10 @@ class User(db.Model):
         We will create a local user (in DB) in order to manage user
         profile such as name, roles,...
         """
-        
+
         # Set an invalid password hash for non local users
         self.password = '*'
-        
+
         db.session.add(self)
         db.session.commit()
 
@@ -563,34 +563,34 @@ class Domain(db.Model):
         headers = {}
         headers['X-API-Key'] = PDNS_API_KEY
         try:
-	    jdata = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/search-data?q=*&type=a'), headers=headers)
-	    list_jdomain = [d['name'].rstrip('.') for d in jdata]
-	    try:
+        jdata = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/search-data?q=*&type=a'), headers=headers)
+        list_jdomain = [d['name'].rstrip('.') for d in jdata]
+        try:
                 # domains to be removed from db since it doesn't exist in powerdns anymore
                 should_removed_db_domain = list(set(list_db_domain).difference(list_jdomain))
                 #for d in should_removed_db_domain:
                     # revoke permission before delete domain
                     #domain = Domain.query.filter(Domain.name==d).first()
-		    #domain_user = DomainUser.query.filter(DomainUser.domain_id==domain.id)
-		    #if domain_user:
+            #domain_user = DomainUser.query.filter(DomainUser.domain_id==domain.id)
+            #if domain_user:
                         #domain_user.delete()
                         #db.session.commit()
                     #domain_setting = DomainSetting.query.filter(DomainSetting.domain_id==domain.id)
-		    #if domain_setting:
+            #if domain_setting:
                         #domain_setting.delete()
                         #db.session.commit()
                     # then remove domain
                     #Domain.query.filter(Domain.name == d).delete()
                     #db.session.commit()
             except:
-		logging.error('Can not delete domain from DB')
+                logging.error('Can not delete domain from DB')
                 logging.debug(traceback.format_exc())
                 db.session.rollback()
 
             # update/add new domain
             '''for data in jdata:
                 d = dict_db_domain.get(data['name'].rstrip('.'), None)
-		changed = False
+                changed = False
                 if d:
                     # existing domain, only update if something actually has changed
                     if ( d.master != str(data['masters'])
@@ -623,12 +623,12 @@ class Domain(db.Model):
                 if changed:
                     try:
                         db.session.commit()
-		    except:
+            except:
                         db.session.rollback()
-			
+
             return {'status': 'ok', 'msg': 'Domain table has been updated successfully'}'''
         except Exception, e:
-	    logging.error('Can not update domain table.' + str(e))
+            logging.error('Can not update domain table.' + str(e))
             return {'status': 'error', 'msg': 'Can not update domain table'}
 
     def update_domain(self, domain_name):
@@ -636,16 +636,16 @@ class Domain(db.Model):
         Fetch domain from PowerDNS and update into DB
         """
         db_domain = Domain.query.filter(Domain.name==domain_name).first()
-        
+
         headers = {}
         headers['X-API-Key'] = PDNS_API_KEY
-        
+
         try:
             data = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/zones/%s' % domain_name), headers=headers, method='GET')
             api_domain = data['name'].rstrip('.')
             changed = False
             # update/add new domain
-        
+
             if db_domain:
                 if api_domain:
                     # existing domain in both db and api, only update if something actually has changed
@@ -663,7 +663,7 @@ class Domain(db.Model):
                                 db_domain.last_check = 1 if data['last_check'] else 0
                                 db_domain.dnssec = 1 if data['dnssec'] else 0
                                 changed = True
-                
+
                 else:
                     #domain doesnt exist in master, delete in db
                     try:
@@ -700,15 +700,15 @@ class Domain(db.Model):
                     # domain details called for invalid domain, throw error
                     logging.error('Invalid domain' + domain_name)
                     return {'status': 'error', 'msg': 'Invalid domain'}
-            
+
             if changed:
                 try:
                     db.session.commit()
                 except:
                     db.session.rollback()
-                
+
             return {'status': 'ok', 'msg': 'Domain table has been updated successfully'}
-        
+
         except Exception, e:
             logging.error('Can not update domain table.' + str(e))
             return {'status': 'error', 'msg': 'Can not update domain table'}
@@ -758,7 +758,7 @@ class Domain(db.Model):
 
     def create_reverse_domain(self, domain_name, domain_reverse_name):
         """
-        Check the existing reverse lookup domain, 
+        Check the existing reverse lookup domain,
         if not exists create a new one automatically
         """
         domain_obj = Domain.query.filter(Domain.name == domain_name).first()
@@ -1057,7 +1057,7 @@ class Record(object):
                     if r_type == 'PTR': # only ptr
                         if ':' in r['record_name']: # dirty ipv6 check
                             r_name = r['record_name']
-            
+
             record = {
                         "name": r_name,
                         "type": r_type,
@@ -1066,7 +1066,7 @@ class Record(object):
                         "ttl": int(r['record_ttl']) if r['record_ttl'] else 3600,
                     }
             records.append(record)
-        
+
         deleted_records, new_records = self.compare(domain, records)
 
         records = []
@@ -1078,7 +1078,7 @@ class Record(object):
                     if r_type == 'PTR': # only ptr
                         if ':' in r['name']: # dirty ipv6 check
                             r_name = dns.reversename.from_address(r['name']).to_text()
-                            
+
             record = {
                         "name": r_name,
                         "type": r_type,
@@ -1139,12 +1139,12 @@ class Record(object):
                 r_name = key[0]
                 r_type = key[1]
                 r_changetype = key[2]
-                
+
                 if PRETTY_IPV6_PTR: # only if activated
                     if r_type == 'PTR': # only ptr
                         if ':' in r_name: # dirty ipv6 check
                             r_name = dns.reversename.from_address(r_name).to_text()
-                
+
                 new_record = {
                         "name": r_name,
                         "type": r_type,
