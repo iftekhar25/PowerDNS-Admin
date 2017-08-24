@@ -33,8 +33,6 @@
                                 <th>Username</th>
                                 <th>First Name</th>
                                 <th>Last Name</th>
-                                <th>Admin</th>
-                                <th>Privileges</th>
                                 <th>Deletion</th>
                             </tr>
                         </thead>
@@ -44,14 +42,6 @@
                                 <td>{{ user.username }}</td>
                                 <td>{{ user.firstname }}</td>
                                 <td>{{ user.lastname }}</td>
-                                <td>
-                                    <input type="checkbox" id="{{ user.username }}" class="admin_toggle" {% if user.role.name=='Administrator' %}checked{% endif %}>
-                                </td>
-                                <td width="6%">
-                                    <button type="button" class="btn btn-flat btn-warning button_revoke" id="{{ user.username }}">
-                                        Revoke&nbsp;<i class="fa fa-lock"></i>
-                                    </button>
-                                </td>
                                 <td width="6%">
                                     <button type="button" class="btn btn-flat btn-danger button_delete" id="{{ user.username }}">
                                         Delete&nbsp;<i class="fa fa-trash"></i>
@@ -180,3 +170,4 @@
     <!-- /.modal-dialog -->
 </div>
 {% endblock %}
+
