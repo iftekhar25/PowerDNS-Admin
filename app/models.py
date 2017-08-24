@@ -241,6 +241,65 @@ class User(db.Model):
 
         logging.error('Unsupported authentication method')
         return False
+    
+    def set_permissions(self):
+        """
+        Set user's read write permissions
+        """
+        baseDN = "%s" % (LDAP_DNS_SEARCH_BASE)
+        searchFilter = "%s=%s" % (LDAP_CN, self.username)
+        searchScope = ldap.SCOPE_SUBTREE
+        retrieveAttributes = None
+        
+        ldap.set_option(ldap.OPT_X_TLS_REQUIRE_CERT, ldap.OPT_X_TLS_NEVER)
+        l = ldap.initialize(LDAP_URI)
+        l.set_option(ldap.OPT_REFERRALS, 0)
+        l.set_option(ldap.OPT_PROTOCOL_VERSION, 3)
+        l.set_option(ldap.OPT_X_TLS,ldap.OPT_X_TLS_DEMAND)
+        l.set_option( ldap.OPT_X_TLS_DEMAND, True )
+        l.set_option( ldap.OPT_DEBUG_LEVEL, 255 )
+        l.protocol_version = ldap.VERSION3
+        
+        try:
+            ldap_result_id = l.search(baseDN, searchScope, searchFilter, retrieveAttributes)
+            result_set = []
+            while 1:
+                result_type, result_data = l.result(ldap_result_id, 0)
+                if (result_data == []):
+                    break
+                else:
+                    if result_type == ldap.RES_SEARCH_ENTRY:
+                        result_set.append(result_data)
+            
+            members = result_set[0][0][1]['member']
+            write = 0		
+            for member in members:
+                #Slice the string to remove 'cn='
+                member = member[3:] 
+                logging.info('User LDAP Member cn "%s"' % member)
+                if (member == LDAP_USER_MEMBER):
+                    write = 1
+                    break
+            
+            user_role_name = 'Administrator' if write else 'User'
+            role = Role.query.filter(Role.name==user_role_name).first()
+
+            try:
+                if role:
+                    user = User.query.filter(User.username==self.username).first()
+                    user.role_id = role.id
+                    db.session.commit()
+                else:
+                    return False
+            except:
+                db.session.roleback()
+                logging.error('Cannot change user role in DB')
+                logging.debug(traceback.format_exc())
+                return False
+			
+        except ldap.LDAPError, e:
+            logging.error(e)
+            raise
 
     def create_user(self):
         """
