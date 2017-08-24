@@ -272,12 +272,13 @@ def logout():
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
-    d = Domain().update()
+    #d = Domain().update()
     if current_user.role.name == 'Administrator':
         domains = Domain.query.all()
     else:
-        domains = User(id=current_user.id).get_domain()
-
+        #domains = User(id=current_user.id).get_domain()
+	domains =  Domain.query.all()
+	
     # stats for dashboard
     domain_count = Domain.query.count()
     users = User.query.all()
