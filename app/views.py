@@ -290,7 +290,7 @@ def dashboard():
         uptime = filter(lambda uptime: uptime['name'] == 'uptime', statistics)[0]['value']
     else:
         uptime = 0
-    return render_template('dashboard.html', domains=domains, domain_count=domain_count, users=users, history_number=history_number, uptime=uptime, histories=history)
+    return render_template('search.html', domains=domains, domain_count=domain_count, users=users, history_number=history_number, uptime=uptime, histories=history)
 
 
 @app.route('/domain/<path:domain_name>', methods=['GET', 'POST'])
