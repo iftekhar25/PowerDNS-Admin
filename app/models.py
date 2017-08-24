@@ -563,35 +563,34 @@ class Domain(db.Model):
         headers = {}
         headers['X-API-Key'] = PDNS_API_KEY
         try:
-            jdata = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/zones'), headers=headers)
-            list_jdomain = [d['name'].rstrip('.') for d in jdata]
-            try:
-                # domains should remove from db since it doesn't exist in powerdns anymore
+	    jdata = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/search-data?q=*&type=a'), headers=headers)
+	    list_jdomain = [d['name'].rstrip('.') for d in jdata]
+	    try:
+                # domains to be removed from db since it doesn't exist in powerdns anymore
                 should_removed_db_domain = list(set(list_db_domain).difference(list_jdomain))
-                for d in should_removed_db_domain:
+                #for d in should_removed_db_domain:
                     # revoke permission before delete domain
-                    domain = Domain.query.filter(Domain.name==d).first()
-                    domain_user = DomainUser.query.filter(DomainUser.domain_id==domain.id)
-                    if domain_user:
-                        domain_user.delete()
-                        db.session.commit()
-                    domain_setting = DomainSetting.query.filter(DomainSetting.domain_id==domain.id)
-                    if domain_setting:
-                        domain_setting.delete()
-                        db.session.commit()
-
+                    #domain = Domain.query.filter(Domain.name==d).first()
+		    #domain_user = DomainUser.query.filter(DomainUser.domain_id==domain.id)
+		    #if domain_user:
+                        #domain_user.delete()
+                        #db.session.commit()
+                    #domain_setting = DomainSetting.query.filter(DomainSetting.domain_id==domain.id)
+		    #if domain_setting:
+                        #domain_setting.delete()
+                        #db.session.commit()
                     # then remove domain
-                    Domain.query.filter(Domain.name == d).delete()
-                    db.session.commit()
+                    #Domain.query.filter(Domain.name == d).delete()
+                    #db.session.commit()
             except:
-                logging.error('Can not delete domain from DB')
+		logging.error('Can not delete domain from DB')
                 logging.debug(traceback.format_exc())
                 db.session.rollback()
 
             # update/add new domain
-            for data in jdata:
+            '''for data in jdata:
                 d = dict_db_domain.get(data['name'].rstrip('.'), None)
-                changed = False
+		changed = False
                 if d:
                     # existing domain, only update if something actually has changed
                     if ( d.master != str(data['masters'])
