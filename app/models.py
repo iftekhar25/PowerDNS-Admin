@@ -623,12 +623,97 @@ class Domain(db.Model):
                 if changed:
                     try:
                         db.session.commit()
-                    except:
+		    except:
                         db.session.rollback()
+			
+            return {'status': 'ok', 'msg': 'Domain table has been updated successfully'}'''
+        except Exception, e:
+	    logging.error('Can not update domain table.' + str(e))
+            return {'status': 'error', 'msg': 'Can not update domain table'}
+
+    def update_domain(self, domain_name):
+        """
+        Fetch domain from PowerDNS and update into DB
+        """
+        db_domain = Domain.query.filter(Domain.name==domain_name).first()
+        
+        headers = {}
+        headers['X-API-Key'] = PDNS_API_KEY
+        
+        try:
+            data = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/zones/%s' % domain_name), headers=headers, method='GET')
+            api_domain = data['name'].rstrip('.')
+            changed = False
+            # update/add new domain
+        
+            if db_domain:
+                if api_domain:
+                    # existing domain in both db and api, only update if something actually has changed
+                    if ( db_domain.master != str(data['masters'])
+                            or db_domain.type != data['kind']
+                            or db_domain.serial != data['serial']
+                            or db_domain.notified_serial != data['notified_serial']
+                            or db_domain.last_check != ( 1 if data['last_check'] else 0 )
+                            or db_domain.dnssec != data['dnssec'] ):
+
+                                db_domain.master = str(data['masters'])
+                                db_domain.type = data['kind']
+                                db_domain.serial = data['serial']
+                                db_domain.notified_serial = data['notified_serial']
+                                db_domain.last_check = 1 if data['last_check'] else 0
+                                db_domain.dnssec = 1 if data['dnssec'] else 0
+                                changed = True
+                
+                else:
+                    #domain doesnt exist in master, delete in db
+                    try:
+                        domain_user = DomainUser.query.filter(DomainUser.domain_id==db_domain.id)
+                        if domain_user:
+                            domain_user.delete()
+                            db.session.commit()
+                        domain_setting = DomainSetting.query.filter(DomainSetting.domain_id==db_domain.id)
+                        if domain_setting:
+                            domain_setting.delete()
+                            db.session.commit()
+
+                        # then remove domain
+                        Domain.query.filter(Domain.name == db_domain.name).delete()
+                        db.session.commit()
+                    except:
+                        logging.error('Can not delete domain from DB')
+                        logging.debug(traceback.format_exc())
+                        db.session.rollback()
+            else:
+                if api_domain:
+                    # add new domain
+                    d = Domain()
+                    d.name = data['name'].rstrip('.')
+                    d.master = str(data['masters'])
+                    d.type = data['kind']
+                    d.serial = data['serial']
+                    d.notified_serial = data['notified_serial']
+                    d.last_check = data['last_check']
+                    d.dnssec = 1 if data['dnssec'] else 0
+                    db.session.add(d)
+                    changed = True
+                else:
+                    # domain details called for invalid domain, throw error
+                    logging.error('Invalid domain' + domain_name)
+                    return {'status': 'error', 'msg': 'Invalid domain'}
+            
+            if changed:
+                try:
+                    db.session.commit()
+                except:
+                    db.session.rollback()
+                
             return {'status': 'ok', 'msg': 'Domain table has been updated successfully'}
+        
         except Exception, e:
             logging.error('Can not update domain table.' + str(e))
             return {'status': 'error', 'msg': 'Can not update domain table'}
+
+
 
     def add(self, domain_name, domain_type, soa_edit_api, domain_ns=[], domain_master_ips=[]):
         """
