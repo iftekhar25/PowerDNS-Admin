@@ -357,7 +357,7 @@ def domain_add():
             if result['status'] == 'ok':
                 history = History(msg='Add domain %s' % domain_name, detail=str({'domain_type': domain_type, 'domain_master_ips': domain_master_ips}), created_by=current_user.username)
                 history.add()
-                return redirect(url_for('dashboard'))
+                return redirect(url_for('domain', domain_name=domain_name))
             else:
                 return render_template('errors/400.html', msg=result['msg']), 400
         except:
