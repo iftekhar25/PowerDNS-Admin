@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}<title>DNS Control Panel - 500 Error</title>{% endblock %}
+{% block title %}<title>DNS Control Panel - API Failure</title>{% endblock %}
 
 {% block dashboard_stat %}
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        500
-        <small>Error</small>
+        API down
+        <small></small>
       </h1>
       <ol class="breadcrumb">
         <li><a href="{{ url_for('dashboard') }}"><i class="fa fa-dashboard"></i>Home</a></li>
-        <li>500</li>
+        <li>API Failure</li>
       </ol>
     </section>
 {% endblock %}
@@ -19,10 +19,13 @@
 <!-- Main content -->
 <section class="content">
     <div class="error-page">
-        <h2 class="headline text-yellow">500</h2>
+        <h2 class="headline text-yellow">API Failure.</h2>
+        <br/>
+        <br/>
+        <br/>
         <div class="error-content">
             <h3>
-                <i class="fa fa-warning text-yellow"></i> Oops! Something went wrong
+                <i class="fa fa-warning text-yellow"></i> Either API server is down (or) API is unable to get record data for the domain.
             </h3>
             <p>
                 Try again later.
