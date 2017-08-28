@@ -65,8 +65,13 @@
                                 <th>Status</th>
                                 <th>TTL</th>
                                 <th>Data</th>
+                               {% if current_user.role.name== 'User' or domain.type== 'Slave'%}
+                               <!-- <th>Edit</th>
+                                <th>Delete</th>-->
+                                {% else %}
                                 <th>Edit</th>
                                 <th>Delete</th>
+                                {% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -105,15 +110,16 @@
                                     {% else %}
                                         <button type="button" class="btn btn-flat btn-warning"">&nbsp;&nbsp;<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;</button>
                                     {% endif %}
+                                    </td>
                                 {% else %}
-                                    <td width="6%">
+                                    <!--<td width="6%">
                                         <button type="button" class="btn btn-flat btn-warning"">&nbsp;&nbsp;<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;</button>
                                     </td>
                                     <td width="6%">
                                         <button type="button" class="btn btn-flat btn-warning"">&nbsp;&nbsp;<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;</button>
-                                    </td> 
+                                    </td>--> 
                                 {% endif %}
-                                    </td>
+                                   <!-- </td>-->
                                     <!-- hidden column that we can sort on -->
                                     <td>1</td>
                                 </tr>
@@ -157,6 +163,21 @@
             "lengthMenu": " _MENU_ records"
         },
         "retrieve" : true,
+        {% if current_user.role.name== 'User' or domain.type== 'Slave'%}
+        "columnDefs": [
+            {
+                type: 'natural',
+                targets: [0, 4]
+            },
+            {
+                // hidden column so that we can add new records on top
+                // regardless of whatever sorting is done
+                visible: false,
+                targets: [ 5 ]
+            }
+        ],
+        "orderFixed": [[5, 'asc']]
+        {% else %}
         "columnDefs": [
             {
                 type: 'natural',
@@ -170,6 +191,7 @@
             }
         ],
         "orderFixed": [[7, 'asc']]
+        {% endif %}
     });
     
     // handle delete button
@@ -472,4 +494,6 @@
     <!-- /.modal-dialog -->
 </div>
 {% endblock %}
+
+
 
