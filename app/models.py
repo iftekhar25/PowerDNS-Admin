@@ -563,20 +563,20 @@ class Domain(db.Model):
         headers = {}
         headers['X-API-Key'] = PDNS_API_KEY
         try:
-        jdata = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/search-data?q=*&type=a'), headers=headers)
-        list_jdomain = [d['name'].rstrip('.') for d in jdata]
-        try:
+            jdata = utils.fetch_json(urlparse.urljoin(PDNS_STATS_URL, API_EXTENDED_URL + '/servers/localhost/search-data?q=*&type=a'), headers=headers)
+            list_jdomain = [d['name'].rstrip('.') for d in jdata]
+            try:
                 # domains to be removed from db since it doesn't exist in powerdns anymore
                 should_removed_db_domain = list(set(list_db_domain).difference(list_jdomain))
                 #for d in should_removed_db_domain:
                     # revoke permission before delete domain
                     #domain = Domain.query.filter(Domain.name==d).first()
-            #domain_user = DomainUser.query.filter(DomainUser.domain_id==domain.id)
-            #if domain_user:
+                #domain_user = DomainUser.query.filter(DomainUser.domain_id==domain.id)
+                #if domain_user:
                         #domain_user.delete()
                         #db.session.commit()
                     #domain_setting = DomainSetting.query.filter(DomainSetting.domain_id==domain.id)
-            #if domain_setting:
+                #if domain_setting:
                         #domain_setting.delete()
                         #db.session.commit()
                     # then remove domain
@@ -678,6 +678,7 @@ class Domain(db.Model):
 
                         # then remove domain
                         Domain.query.filter(Domain.name == db_domain.name).delete()
+                        logging.info('deleting domain "%s" ' % db_domain.name)
                         db.session.commit()
                     except:
                         logging.error('Can not delete domain from DB')
@@ -710,6 +711,25 @@ class Domain(db.Model):
             return {'status': 'ok', 'msg': 'Domain table has been updated successfully'}
 
         except Exception, e:
+            if db_domain:
+                try:
+                        domain_user = DomainUser.query.filter(DomainUser.domain_id==db_domain.id)
+                        if domain_user:
+                            domain_user.delete()
+                            db.session.commit()
+                        domain_setting = DomainSetting.query.filter(DomainSetting.domain_id==db_domain.id)
+                        if domain_setting:
+                            domain_setting.delete()
+                            db.session.commit()
+
+                        # then remove domain
+                        Domain.query.filter(Domain.name == db_domain.name).delete()
+                        logging.info('deleting domain "%s" ' % db_domain.name)
+                        db.session.commit()
+                except:
+                        logging.error('Can not delete domain from DB')
+                        logging.debug(traceback.format_exc())
+                        db.session.rollback()
             logging.error('Can not update domain table.' + str(e))
             return {'status': 'error', 'msg': 'Can not update domain table'}
 
@@ -1505,3 +1525,5 @@ class Setting(db.Model):
             logging.debug(traceback.format_exec())
             db.session.rollback()
             return False
+
+
