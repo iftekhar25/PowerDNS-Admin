@@ -175,7 +175,7 @@ def login():
     BASIC_ENABLED = app.config['BASIC_ENABLED']
     SIGNUP_ENABLED = app.config['SIGNUP_ENABLED']
     GITHUB_ENABLE = app.config.get('GITHUB_OAUTH_ENABLE')
-
+    
     if g.user is not None and current_user.is_authenticated:
         return redirect(url_for('dashboard'))
 
@@ -238,7 +238,10 @@ def login():
                 return render_template('login.html', error='Token required', ldap_enabled=LDAP_ENABLED, login_title=LOGIN_TITLE, basic_enabled=BASIC_ENABLED, signup_enabled=SIGNUP_ENABLED)
 
 	#User set permissions
-	user.set_permissions()
+        try: 
+            user.set_permissions()
+        except Exception, e:
+            return redirect(url_for('error', code=401))
         login_user(user, remember = remember_me)
         return redirect(request.args.get('next') or url_for('index'))
     else:
@@ -816,3 +819,4 @@ def index():
     return redirect(url_for('dashboard'))
 
 # END VIEWS
+

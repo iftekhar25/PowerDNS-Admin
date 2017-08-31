@@ -270,7 +270,9 @@ class User(db.Model):
                 else:
                     if result_type == ldap.RES_SEARCH_ENTRY:
                         result_set.append(result_data)
-
+            
+            if not result_set:
+                raise Exception("LDAP Result Empty")
             members = result_set[0][0][1]['member']
             write = 0
             for member in members:

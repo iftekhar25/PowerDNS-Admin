@@ -168,6 +168,7 @@ json_library = {
     },
     prettyPrint: function(obj) {
         obj = obj.replace(/u'/g, "\'").replace(/'/g, "\"").replace(/(False|None)/g, "\"$1\"");
+        obj = obj.replace(/""/g, '"');
         var jsonData = JSON.parse(obj);
         var jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
             return JSON.stringify(jsonData, null, 3)
