@@ -30,6 +30,7 @@
                 <div class="box-body">
                     <div class="form-group">
                         <input type="text" class="form-control" name="domain_name" id="domain_name" placeholder="Enter a valid domain name (required)">
+                         <span class="help-block hidden"></span>
                     </div>
                     <div class="form-group">
                         <label>Type</label>
@@ -92,7 +93,7 @@
                 <!-- /.box-body -->
 
                 <div class="box-footer">
-                    <button type="submit" class="btn btn-flat btn-primary">Submit</button>
+                    <button type="submit" class="btn btn-flat btn-primary" onclick="if(!validateDomainName()) return false;">Submit</button>
                     <button type="button" class="btn btn-flat btn-default" onclick="window.location.href='{{ url_for('dashboard') }}'">Cancel</button>
                 </div>
 	     </form>
@@ -166,5 +167,47 @@
             $("#domain_master_address_div").hide();
         }
     });
+   
+   function validateDomainName(){
+     var domainName = document.getElementById("domain_name").value; 
+     var inValid = false;    
+     var message = ''; 
+
+     if (/\s/g.test(domainName)){
+       inValid = true;
+       message = 'Domain name cannot contain spaces. Please try again.';
+     }
+     else if(!(domainName.replace(/\s/g, '')).length){
+       inValid = true;
+       message = 'Domain name cannot be empty. Please try again.';
+     }
+     else if(domainName.length>255){
+       inValid = true;
+       message = 'Domain name is too long. Please try again.';
+     } 
+     else if(domainName.match(/[^a-zA-Z0-9\-#&;,:_ '%\(\)\[\]\p{Latin}]/)){
+       inValid = true;
+       message = 'Domain name contains invalid characters. Please try again.';
+     }
+     
+     if(inValid){
+        var group = document.getElementById("domain_name").closest('.form-group');
+        group.classList.add('has-error');
+        
+        var helpBlock = group.querySelector(".help-block");
+        if (helpBlock.classList){
+             helpBlock.classList.remove('hidden');
+        }
+        else{
+             helpBlock.hidden = helpBlock.hidden.replace(new RegExp('(^|\\b)' + hidden.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+        } 
+        helpBlock.innerHTML = message;
+        return false;
+     }
+     else{
+          return true;
+     }    
+   }  
 </script>
 {% endblock %}
+

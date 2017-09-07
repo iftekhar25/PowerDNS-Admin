@@ -1283,6 +1283,13 @@ a:focus {
 .form-group.has-error .help-block {
   color: #dd4b39;
 }
+.help-block {
+  display: block;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  color: #737373;
+}
+
 /* Input group */
 .input-group .input-group-addon {
   border-radius: 0;
@@ -3260,6 +3267,8 @@ table.text-center th {
   float: left;
   font-size: 100px;
   font-weight: 300;
+  white-space: nowrap;
+  overflow: hidden;
 }
 @media (max-width: 991px) {
   .error-page > .headline {
