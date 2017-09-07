@@ -181,11 +181,11 @@
        inValid = true;
        message = 'Domain name cannot be empty. Please try again.';
      }
-     else if(domainName.length>255){
+     else if(domainName.length>63){
        inValid = true;
        message = 'Domain name is too long. Please try again.';
      } 
-     else if(domainName.match(/[^a-zA-Z0-9\-#&;,:_ '%\(\)\[\]\p{Latin}]/)){
+     else if(domainName.match(/[^a-zA-Z0-9\-._ \(\)\[\]\p{Latin}]/)){
        inValid = true;
        message = 'Domain name contains invalid characters. Please try again.';
      }
