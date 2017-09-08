@@ -27,12 +27,12 @@
                         <ul class="nav nav-tabs">
                             <li class="active"><a href="#tabs-personal" data-toggle="tab">Personal
                                     Info</a></li>
-                            <li><a href="#tabs-avatar" data-toggle="tab">Change
+                            <!--<li><a href="#tabs-avatar" data-toggle="tab">Change
                                     Avatar</a></li>
                             <li><a href="#tabs-password" data-toggle="tab">Change
                                     Password</a></li>
                             <li><a href="#tabs-authentication" data-toggle="tab">Authentication
-                                    </a></li>
+                                    </a></li>-->
                         </ul>
                         <div class="tab-content">
                             <div class="tab-pane active" id="tabs-personal">
@@ -40,24 +40,24 @@
                                     <div class="form-group">
                                         <label for="firstname">First Name</label> <input type="text"
                                             class="form-control" name="firstname" id="firstname"
-                                            placeholder="{{ current_user.firstname }}">
+                                            placeholder="{{ current_user.firstname }}" readonly="readonly">
                                     </div>
                                     <div class="form-group">
                                         <label for="lastname">Last Name</label> <input type="text"
                                             class="form-control" name="lastname" id="lastname"
-                                            placeholder="{{ current_user.lastname }}">
+                                            placeholder="{{ current_user.lastname }}" readonly="readonly">
                                     </div>
                                     <div class="form-group">
                                         <label for="email">E-mail</label> <input type="text"
                                             class="form-control" name="email" id="email"
-                                            placeholder="{{ current_user.email }}">
+                                            placeholder="{{ current_user.email }}" readonly="readonly">
                                     </div>
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-flat btn-primary">Submit</button>
+                                        <button type="submit" class="btn btn-flat btn-primary" disabled="disabled">Submit</button>
                                     </div>
                                 </form>
                             </div>
-                            <div class="tab-pane" id="tabs-avatar">
+                           <!-- <div class="tab-pane" id="tabs-avatar">
                                 <form action="{{ user_profile }}" method="post"
                                     enctype="multipart/form-data">
                                     <div class="form-group">
@@ -124,7 +124,7 @@
                                         {% endif %}
                                     </div>
                                 </form>
-                            </div>
+                            </div>-->
                         </div>
                     </div>
                 </div>
