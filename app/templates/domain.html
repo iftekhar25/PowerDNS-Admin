@@ -65,8 +65,8 @@
                                 <th>Status</th>
                                 <th>TTL</th>
                                 <th>Data</th>
-                               {% if current_user.role.name== 'User' or domain.type== 'Slave'%}
-                               <!-- <th>Edit</th>
+                                {% if current_user.role.name== 'User' or domain.type== 'Slave'%}
+                                <!-- <th>Edit</th>
                                 <th>Delete</th>-->
                                 {% else %}
                                 <th>Edit</th>
@@ -76,7 +76,11 @@
                         </thead>
                         <tbody>
                                 {% for record in records %}
-                                <tr class="odd row_record" id="{{ domain.name }}">
+                                    {% if current_user.role.name=='User' or domain.type=='Slave' %}
+                                        <tr class="odd row_record" id="{{ domain.name }}" style="pointer-events: none;">
+                                    {% else %}
+                                        <tr class="odd row_record" id="{{ domain.name }}">
+                                    {% endif %}
                                     <td>
                                         {{ (record.name,domain.name)|display_record_name }}
                                     </td>
