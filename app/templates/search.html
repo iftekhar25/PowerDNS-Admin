@@ -129,6 +129,7 @@
             <div class="box-body">
                 <div class="form-group">
                     <input type="text" class="form-control" name="domain_name1" id="domain_name1" placeholder="Enter a valid domain name (required)">
+                    <span class="help-block hidden"></span>
                 </div>
                <button type="button" id="btn-search" class="btn btn-flat btn-primary btn-search">
                       Search &nbsp;<i class="fa fa-search"></i>
@@ -192,6 +193,8 @@
     });
 // function searchClick(){
  $(document.body).on("click",".btn-search", function() {
+        if(!validateDomainName())
+            return false;
         var js_domain_name  = document.getElementById("domain_name1").value;
 	var url = "{{url_for('domain', domain_name='temporary')}}".replace("temporary", js_domain_name);	
 	window.location.href = url;
@@ -203,6 +206,47 @@ document.getElementById("domain_name1")
         document.getElementById("btn-search").click();
     }
 });
+
+function validateDomainName(){
+     var domainName = document.getElementById("domain_name1").value; 
+     var inValid = false;    
+     var message = ''; 
+
+     if (/\s/g.test(domainName)){
+       inValid = true;
+       message = 'Domain name cannot contain spaces. Please try again.';
+     }
+     else if(!(domainName.replace(/\s/g, '')).length){
+       inValid = true;
+       message = 'Domain name cannot be empty. Please try again.';
+     }
+     else if(domainName.length>63){
+       inValid = true;
+       message = 'Domain name is too long. Please try again.';
+     } 
+     else if(domainName.match(/[^a-zA-Z0-9\-._ \(\)\[\]\p{Latin}]/)){
+       inValid = true;
+       message = 'Domain name contains invalid characters. Please try again.';
+     }
+     
+     if(inValid){
+        var group = document.getElementById("domain_name1").closest('.form-group');
+        group.classList.add('has-error');
+        
+        var helpBlock = group.querySelector(".help-block");
+        if (helpBlock.classList){
+             helpBlock.classList.remove('hidden');
+        }
+        else{
+             helpBlock.hidden = helpBlock.hidden.replace(new RegExp('(^|\\b)' + hidden.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+        } 
+        helpBlock.innerHTML = message;
+        return false;
+     }
+     else{
+          return true;
+     }    
+   } 
 </script>
 {% endblock %}
 {% block modals %}
@@ -253,5 +297,6 @@ document.getElementById("domain_name1")
 </div>
 <!-- /.modal -->
 {% endblock %}
+
 
 
