@@ -8,6 +8,7 @@
         Domain
         <small>Create new</small>
       </h1>
+      <h2><font color="FF0000">ATTENTION!!!! This page is broken. We will enable this feature once the fix is ready!</font></h2>
       <ol class="breadcrumb">
         <li><a href="{{ url_for('dashboard') }}"><i class="fa fa-dashboard"></i>Home</a></li>
         <li><a href="{{ url_for('dashboard') }}">Domain</a></li>
@@ -29,63 +30,63 @@
             <form role="form" method="post" action="{{ url_for('domain_add') }}">
                 <div class="box-body">
                     <div class="form-group">
-                        <input type="text" class="form-control" name="domain_name" id="domain_name" placeholder="Enter a valid domain name (required)">
+                        <input disabled type="text" class="form-control" name="domain_name" id="domain_name" placeholder="Enter a valid domain name (required)">
                          <span class="help-block hidden"></span>
                     </div>
                     <div class="form-group">
                         <label>Type</label>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type" id="radio_type_native" value="native" checked> Native
+                                <input disabled type="radio" name="radio_type" id="radio_type_native" value="native" checked> Native
                             </label>
                             &nbsp;&nbsp;&nbsp;
                             <label>
-                                <input type="radio" name="radio_type"id="radio_type_master" value="master"> Master
+                                <input disabled type="radio" name="radio_type"id="radio_type_master" value="master"> Master
                             </label>
                             &nbsp;&nbsp;&nbsp;
                             <label>
-                                <input type="radio" name="radio_type" id="radio_type_slave" value="slave">Slave
+                                <input disabled type="radio" name="radio_type" id="radio_type_slave" value="slave">Slave
                             </label>
                         </div>
                     </div>
                     <div class="form-group" style="display: none;" id="domain_master_address_div">
-                        <input type="text" class="form-control" name="domain_master_address" id="domain_master_address" placeholder="Enter valid master ip addresses (separated by commas)">
+                        <input disabled type="text" class="form-control" name="domain_master_address" id="domain_master_address" placeholder="Enter valid master ip addresses (separated by commas)">
                     </div>
                     <div class="form-group">
                         <label>SOA-EDIT-API</label>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_off" value="OFF" checked> (OFF)
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_off" value="OFF" checked> (OFF)
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_inception_increment" value="INCEPTION-INCREMENT"> INCEPTION-INCREMENT
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_inception_increment" value="INCEPTION-INCREMENT"> INCEPTION-INCREMENT
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_inception" value="INCEPTION"> INCEPTION
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_inception" value="INCEPTION"> INCEPTION
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_increment_week" value="INCREMENT-WEEK"> INCREMENT-WEEK
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_increment_week" value="INCREMENT-WEEK"> INCREMENT-WEEK
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_increment_weeks" value="INCREMENT-WEEKS"> INCREMENT-WEEKS
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_increment_weeks" value="INCREMENT-WEEKS"> INCREMENT-WEEKS
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_epoch" value="EPOCH"> EPOCH
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_epoch" value="EPOCH"> EPOCH
                             </label>
                         </div>
                         <div class="radio">
                             <label>
-                                <input type="radio" name="radio_type_soa_edit_api" id="radio_inception_epoch" value="INCEPTION-EPOCH"> INCEPTION-EPOCH
+                                <input disabled type="radio" name="radio_type_soa_edit_api" id="radio_inception_epoch" value="INCEPTION-EPOCH"> INCEPTION-EPOCH
                             </label>
                         </div>
                     </div>
@@ -93,7 +94,7 @@
                 <!-- /.box-body -->
 
                 <div class="box-footer">
-                    <button type="submit" class="btn btn-flat btn-primary" onclick="if(!validateDomainName()) return false;">Submit</button>
+                    <button disabled="disabled" type="submit" class="btn btn-flat btn-primary" onclick="if(!validateDomainName()) return false;">Submit</button>
                     <button type="button" class="btn btn-flat btn-default" onclick="window.location.href='{{ url_for('dashboard') }}'">Cancel</button>
                 </div>
 	     </form>
