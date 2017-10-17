@@ -33,6 +33,7 @@
                                 <th>Content</th>
                                 <th>Time</th>
                                 <th>Detail</th>
+                                <th>Restore</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -44,6 +45,11 @@
                                 <td width="6%">
                                     <button type="button" class="btn btn-flat btn-primary history-info-button" value='{{ history.detail }}'>Info&nbsp;<i class="fa fa-info"></i>
                                     </button>
+                                </td>
+                                <td width="6%">
+                                {% if "Apply record changes" in history.msg %}
+                                     <button type="button" class="btn btn-flat btn-primary revert-button" value='{{ history.msg }}+{{ history.detail }}'>Revert&nbsp;<i class="fa fa-undo"></i></button>
+                                {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -76,6 +82,39 @@
         $('#modal-code-content').html(json_library.prettyPrint(info));
         modal.modal('show');
     });
+
+    // handle revert  button
+    $(document.body).on("click",".revert-button", function() {
+        var modal = $("#modal_revert_change");
+        var history = $(this).val();
+        var indexOfPlus = history.indexOf("+");
+        var historymsg = history.substring(0,indexOfPlus);
+        var historydetail = history.substring(indexOfPlus+1);
+        var indexOfDomain = historymsg.indexOf("domain");
+        indexOfDomain += 7; //index of the string after the string domain
+        var domain = historymsg.substring(indexOfDomain);
+        var info = "Are you sure you want to revert to this change?"; 
+        modal.find('.modal-body p').text(info);
+        modal.find('#button_revert_confirm').click(function() {
+            //Fix the python formatted string that comes from mysql query result from history table and change it to valid json string
+            var data = fixJsonString(historydetail);
+            //Convert the json string to a valid json object
+            data = JSON.parse(data);
+            applyChanges(data, $SCRIPT_ROOT + '/domain/' + domain + '/apply', true);
+            modal.modal('hide');
+        })
+        modal.modal('show');
+        
+    });
+
+     function fixJsonString(str){
+       //Find and replace all single quotes with double quotes
+       str = str.replace(/"/g, '\\"');
+       var result = str.replace(/'/g, '"');
+       result = result.replace(/u"/g, "\"");
+       //result = result.replace(/""/g,'"\\"');
+       return result;
+     }
 </script>
 {% endblock %} 
 {% block modals %}
@@ -103,6 +142,7 @@
     </div>
     <!-- /.modal-dialog -->
 </div>
+<!-- Info Button display content -->
 <div class="modal fade" id="modal_history_info">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -119,6 +159,30 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-flat btn-default pull-right"
                     data-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+<!-- Revert Button Modal -->
+<div class="modal fade modal-primary" id="modal_revert_change">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Confirmation</h4>
+            </div>
+            <div class="modal-body">
+                <p></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-flat btn-default pull-left"
+                    data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-flat btn-primary" id="button_revert_confirm">Revert</button>
             </div>
         </div>
         <!-- /.modal-content -->
