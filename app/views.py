@@ -330,6 +330,7 @@ def domain(domain_name):
             editable_records = app.config['RECORDS_ALLOW_EDIT']
         else:
             editable_records = ['PTR']
+        domain.master = domain.master.replace("u\'", "\'")
         return render_template('domain.html', domain=domain, records=records, editable_records=editable_records)
     else:
         return redirect(url_for('error', code=404))

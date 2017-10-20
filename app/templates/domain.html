@@ -12,6 +12,14 @@
         View domain <small>{{ domain.name }}</small>
     </h1>
     {% endif %}
+    {% if domain.type == 'Slave' %}
+     <h3>
+        <i>Please note this is a Slave domain and cannot be edited here.</i>
+     </h3>
+      <h4>
+         Master IPs: <small> {{ domain.master }} </small>
+     </h3>
+    {% endif %}
     <ol class="breadcrumb">
         <li><a href="{{ url_for('dashboard') }}"><i
                 class="fa fa-dashboard"></i> Home</a></li>
