@@ -21,6 +21,13 @@ def auth_from_url(url):
         auth = requests.auth.HTTPBasicAuth(auth[0], auth[1])
     return auth
 
+def fetch_config_ldap_member(data):
+    data = app.config['LDAP_USER_MEMBER']
+    if "internal" in data:
+       data = "internal"
+    else:
+       data = "external"
+    return data
 
 def fetch_remote(remote_url, method='GET', data=None, accept=None, params=None, timeout=None, headers=None):
     if data is not None and type(data) != str:
