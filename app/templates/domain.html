@@ -44,26 +44,27 @@
                 <div class="box-body">
                     {% if domain.type != 'Slave' %}
                         {% if current_user.role.name == 'Administrator' %}
-                            <button type="button" class="btn btn-flat btn-primary pull-left button_add_record" id="{{ domain.name }}">
+                            <button type="button" class="btn btn-flat btn-primary pull-left button_add_record" id="add-record-button" name="add-record-button">
                                 Add Record&nbsp;<i class="fa fa-plus"></i>
                             </button>
                             <button type="button" class="btn btn-flat btn-primary pull-right button_apply_changes" id="{{ domain.name }}">
                                 Apply Changes&nbsp;<i class="fa fa-floppy-o"></i>
                             </button>
+                            <span class="help-block hidden" style="text-align:center" ></span>
                         {% endif %}
                     {% else %}
                     <!--<button type="button" class="btn btn-flat btn-primary pull-left button_update_from_master" id="{{ domain.name }}">
                         Update from Master&nbsp;<i class="fa fa-download"></i>
                     </button>-->
                     {% endif %}
-		</div>
-		<div class="box-body">
-		    {% if current_user.role.name == 'Administrator' %}
-		      <button type="button" class="btn btn-flat btn-danger" onclick="window.location.href='{{ url_for('domain_management', domain_name=domain.name) }}'">
-                      	Domain Admin Management&nbsp;<i class="fa fa-cog"></i>
+        </div>
+        <div class="box-body">
+            {% if current_user.role.name == 'Administrator' %}
+              <button type="button" class="btn btn-flat btn-danger" onclick="window.location.href='{{ url_for('domain_management', domain_name=domain.name) }}'">
+                        Domain Admin Management&nbsp;<i class="fa fa-cog"></i>
                       </button>
-		    {% endif %}
-                </div>
+            {% endif %}
+         </div>
                 <div class="box-body">
                     <table id="tbl_records" class="table table-bordered table-striped">
                         <thead>
@@ -101,7 +102,7 @@
                                     <td>
                                          {{ record.ttl }}
                                     </td>
-                                    <td class="length-break">
+                                    <td class="length-break" id="record_data">
                                          {{ record.data }}
                                     </td>
                                 {% if domain.type != 'Slave' %}
@@ -233,7 +234,7 @@
          var table = $("#tbl_records").DataTable();
         
         if (nEditing == nRow) {
-            /* click on row already being edited, do nothing */
+             /* click on row already being edited, do nothing */
         } else if (nEditing !== null && nEditing != nRow && nNew == false) {
              /* Currently editing - but not this row - restore the old before continuing to edit mode */
              restoreRow(table, nEditing);
@@ -254,17 +255,30 @@
     
     // handle apply changes button
     $(document.body).on("click",".button_apply_changes", function() {
-        var modal = $("#modal_apply_changes");
-        var table = $("#tbl_records").DataTable();
-        var domain = $(this).prop('id');
-        var info = "Are you sure you want to apply your changes?"; 
-        modal.find('.modal-body p').text(info);
-        modal.find('#button_apply_confirm').click(function() {
+        var group = document.getElementById("add-record-button").closest('.box-body');
+        group.classList.add('has-error');
+        
+        var helpBlock = group.querySelector(".help-block");
+        var areThereChanges = false;
+        if (helpBlock.classList)
+            if(!helpBlock.classList.contains("hidden"))
+                areThereChanges = true;
+        if(areThereChanges){
+            var modal = $("#modal_apply_changes");
+            var table = $("#tbl_records").DataTable();
+            var domain = $(this).prop('id');
+            var info = "Are you sure you want to apply your changes?"; 
+            modal.find('.modal-body p').text(info);
+            modal.find('#button_apply_confirm').click(function() {
             var data = getTableData(table);
-            applyChanges(data, $SCRIPT_ROOT + '/domain/' + domain + '/apply', true);
+            applyChanges(data, $SCRIPT_ROOT + '/domain/' + domain + '/apply', true, true);
             modal.modal('hide');
         })
         modal.modal('show');
+        }
+        else{
+              alert("There are no changes to be applied");
+        }
         
     });
     
@@ -307,15 +321,67 @@
             e.stopPropagation();
             var table = $("#tbl_records").DataTable();
             saveRow(table, nEditing);
+            detectUnsavedChanges(table);
             nEditing = null;
             nNew = false;
         });
+     
+    function detectUnsavedChanges(table){
+     var unsavedChanges = false;    
+     var message = 'There are unsaved changes on the zone. Please click Apply Changes to save all your changes.'; 
+     var index =0;
+            
+    {% for record in records %}
+        var origrecordttl = '{{ record.ttl }}';
+        var origrecordname = '{{ (record.name,domain.name) | display_record_name }}';
+        var origrecorddata = '{{ record.data }}';
+        origrecorddata = origrecorddata.replace(/&#34;/g, '\"');
+        var origrecordtype = '{{ record.type }}';
+        var editrecordttl =  table.row(index).data()[3];
+        var editrecordname = table.row(index).data()[0];
+        var editrecorddata = table.row(index).data()[4];
+        var editrecordtype = table.row(index).data()[1];
+        if(origrecordttl != editrecordttl || origrecordname != editrecordname || origrecorddata != editrecorddata || origrecordtype != editrecordtype)
+        {
+            unsavedChanges = true;
+        }
+        index++;
+    {% endfor %}
+     
+     if(unsavedChanges){
+        var group = document.getElementById("add-record-button").closest('.box-body');
+        group.classList.add('has-error');
+        
+        var helpBlock = group.querySelector(".help-block");
+        if (helpBlock.classList){
+             helpBlock.classList.remove('hidden');
+        }
+        else{
+             helpBlock.hidden = helpBlock.hidden.replace(new RegExp('(^|\\b)' + hidden.split(' ').join('|') + '(\\b|$)', 'gi'), ' ');
+        } 
+        $(helpBlock).css({
+            'text-align': 'center',
+            'font-size': '100%',
+        });
+        helpBlock.innerHTML = message;
+        return false;
+     }
+     else{
+         var group = document.getElementById("add-record-button").closest('.box-body');
+         var helpBlock = group.querySelector(".help-block");
+         if (helpBlock.classList)
+              helpBlock.classList.add("hidden");
+         else
+              helpBlock.className += ' ' + "hidden";
+     }    
+   } 
     
     //handle update_from_master button
     $(document.body).on("click", ".button_update_from_master", function (e) {
             var domain = $(this).prop('id');
             applyChanges({'domain': domain}, $SCRIPT_ROOT + '/domain/' + domain + '/update');
     });
+
     
     {% if record_helper_setting %}
     //handle wacky record types
@@ -506,6 +572,5 @@
     <!-- /.modal-dialog -->
 </div>
 {% endblock %}
-
 
 
