@@ -218,6 +218,7 @@
         modal.find('.modal-body p').text(info);
         modal.find('#button_delete_confirm').click(function() {
             table.row(nRow).remove().draw();
+            detectUnsavedChanges(table); 
             modal.modal('hide');
         })
         modal.modal('show');
@@ -327,28 +328,43 @@
         });
      
     function detectUnsavedChanges(table){
-     var unsavedChanges = false;    
-     var message = 'There are unsaved changes on the zone. Please click Apply Changes to save all your changes.'; 
+     var unsavedChanges = false;
      var index =0;
-            
-    {% for record in records %}
+     var origcount = {{ records|length }};
+     var count = table.page.info().recordsTotal;
+     if(count!=origcount){
+         unsavedChanges = true; //a record was either added or deleted.
+     }
+     else{
+      {% for record in records %}
         var origrecordttl = '{{ record.ttl }}';
         var origrecordname = '{{ (record.name,domain.name) | display_record_name }}';
         var origrecorddata = '{{ record.data }}';
         origrecorddata = origrecorddata.replace(/&#34;/g, '\"');
         var origrecordtype = '{{ record.type }}';
-        var editrecordttl =  table.row(index).data()[3];
-        var editrecordname = table.row(index).data()[0];
-        var editrecorddata = table.row(index).data()[4];
-        var editrecordtype = table.row(index).data()[1];
-        if(origrecordttl != editrecordttl || origrecordname != editrecordname || origrecorddata != editrecorddata || origrecordtype != editrecordtype)
-        {
-            unsavedChanges = true;
+        if(!table.row(index)|| typeof table.row(index) == 'undefined'){
+            unsavedChanges = true; //sanity check otherwise below code throws error if row at that index doesn't exist.
+        }
+        else{
+            var editrecordttl =  table.row(index).data()[3];
+            var editrecordname = table.row(index).data()[0];
+            var editrecorddata = table.row(index).data()[4];
+            var editrecordtype = table.row(index).data()[1];
+            if(origrecordttl != editrecordttl || origrecordname != editrecordname || origrecorddata != editrecorddata || origrecordtype != editrecordtype)
+            {
+                unsavedChanges = true;
+            }
         }
         index++;
-    {% endfor %}
-     
-     if(unsavedChanges){
+      {% endfor %}
+    }
+    unsavedChangesWarning(unsavedChanges);
+   }
+
+   function unsavedChangesWarning(unsavedChanges){
+       //This function either shows or hides the unsaved changes warning according to the boolean value.
+       if(unsavedChanges){
+        var message = 'There are unsaved changes on the zone. Please click Apply Changes to save all your changes.';
         var group = document.getElementById("add-record-button").closest('.box-body');
         group.classList.add('has-error');
         
@@ -374,7 +390,7 @@
          else
               helpBlock.className += ' ' + "hidden";
      }    
-   } 
+   }
     
     //handle update_from_master button
     $(document.body).on("click", ".button_update_from_master", function (e) {
@@ -572,5 +588,4 @@
     <!-- /.modal-dialog -->
 </div>
 {% endblock %}
-
 
