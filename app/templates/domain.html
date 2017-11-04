@@ -63,6 +63,8 @@
               <button type="button" class="btn btn-flat btn-danger" onclick="window.location.href='{{ url_for('domain_management', domain_name=domain.name) }}'">
                         Domain Admin Management&nbsp;<i class="fa fa-cog"></i>
                       </button>
+                <button type="button" class="btn btn-flat btn-primary pull-right show-diff-button">Show Diff&nbsp;<i class="fa fa-list"></i>
+                        </button>
             {% endif %}
          </div>
                 <div class="box-body">
@@ -109,7 +111,7 @@
                                     <td width="6%">
                                     {% if record.is_allowed() %}
                                         {% if current_user.role.name == 'Administrator' %}
-                                            <button type="button" class="btn btn-flat btn-warning button_edit" id="{{ (record.name,domain.name)|display_record_name }}">Edit&nbsp;<i class="fa fa-edit"></i></button>
+                                            <button type="button" class="btn btn-flat btn-warning button_edit" id="edit_button">Edit&nbsp;<i class="fa fa-edit"></i></button>
                                         {% endif %}
                                     {% else %}
                                        <button type="button" class="btn btn-flat btn-warning"">&nbsp;&nbsp;<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;</button>
@@ -118,7 +120,7 @@
                                     <td width="6%">
                                     {% if record.is_allowed() %}
                                         {% if current_user.role.name == 'Administrator' %}
-                                            <button type="button" class="btn btn-flat btn-danger button_delete" id="{{ (record.name,domain.name)|display_record_name }}">Delete&nbsp;<i class="fa fa-trash"></i></button>
+                                            <button type="button" class="btn btn-flat btn-danger button_delete" id="delete_button">Delete&nbsp;<i class="fa fa-trash"></i></button>
                                         {% endif %}
                                     {% else %}
                                         <button type="button" class="btn btn-flat btn-warning"">&nbsp;&nbsp;<i class="fa fa-exclamation-circle"></i>&nbsp;&nbsp;</button>
@@ -155,6 +157,17 @@
     window.records_allow_edit = {{ editable_records|tojson }};
     window.nEditing = null;
     window.nNew = false;
+    
+    //Maintain three global lists which keep track of edited, added, deleted records
+    window.editDiff = [];
+    window.addDiff = [];
+    window.deleteDiff =[];
+    
+    //If edit is clicked on a row and nothing changed, keep track of that.
+    window.nBefore = "";
+    
+    //Most recently deleted record
+    window.lastDeletedIndex = -1;
 
     // set up user data table
     $("#tbl_records").DataTable({
@@ -216,9 +229,19 @@
         var nRow = $(this).parents('tr')[0];
         var info = "Are you sure you want to delete " + record + "?"; 
         modal.find('.modal-body p').text(info);
-        modal.find('#button_delete_confirm').click(function() {
+        modal.find('#button_delete_confirm').unbind().click(function() {
+            if(addDiff.includes(nRow)){
+                    //Deleted record was previously added, so no changes. Remove it from add list.
+                    addDiff.splice(addDiff.indexOf(nRow),1);
+                    setUnsavedChangesWarning();
+            }
+            else{
+                    deleteDiff.push(nRow);
+                    lastDeletedIndex = nRow._DT_RowIndex;
+                    unsavedChangesWarning(true);
+            }
             table.row(nRow).remove().draw();
-            detectUnsavedChanges(table); 
+            
             modal.modal('hide');
         })
         modal.modal('show');
@@ -232,6 +255,7 @@
          } else {
             var nRow = $(this).parents('tr')[0];
          }
+         nBefore = nRow.innerHTML;
          var table = $("#tbl_records").DataTable();
         
         if (nEditing == nRow) {
@@ -322,42 +346,140 @@
             e.stopPropagation();
             var table = $("#tbl_records").DataTable();
             saveRow(table, nEditing);
-            detectUnsavedChanges(table);
+            if(nNew){
+                //New record was added. For add record
+                if(deleteDiff.includes(table.row(nEditing).node())){
+                    //Added record was previously deleted, so no changes. Remove it from delete list.
+                    deleteDiff.splice(deleteDiff.indexOf(table.row(nEditing).node()),1);
+                    setUnsavedChangesWarning();
+                }
+                else{
+                    addDiff.push(table.row(nEditing).node());
+                    unsavedChangesWarning(true);
+                }
+                
+            }
+            else{
+                //Existing record is edited
+                detectUnsavedChanges(table);
+            }
             nEditing = null;
             nNew = false;
         });
-     
-    function detectUnsavedChanges(table){
-     var unsavedChanges = false;
-     var index =0;
-     var origcount = {{ records|length }};
-     var count = table.page.info().recordsTotal;
-     if(count!=origcount){
-         unsavedChanges = true; //a record was either added or deleted.
-     }
-     else{
-      {% for record in records %}
-        var origrecordttl = '{{ record.ttl }}';
-        var origrecordname = '{{ (record.name,domain.name) | display_record_name }}';
-        var origrecorddata = '{{ record.data }}';
-        origrecorddata = origrecorddata.replace(/&#34;/g, '\"');
-        var origrecordtype = '{{ record.type }}';
-        if(!table.row(index)|| typeof table.row(index) == 'undefined'){
-            unsavedChanges = true; //sanity check otherwise below code throws error if row at that index doesn't exist.
-        }
-        else{
-            var editrecordttl =  table.row(index).data()[3];
-            var editrecordname = table.row(index).data()[0];
-            var editrecorddata = table.row(index).data()[4];
-            var editrecordtype = table.row(index).data()[1];
-            if(origrecordttl != editrecordttl || origrecordname != editrecordname || origrecorddata != editrecorddata || origrecordtype != editrecordtype)
-            {
-                unsavedChanges = true;
+        
+        
+    //handle show diff button
+    $(document.body).on('click', '.show-diff-button', function() {
+        var modal = $("#modal_show_diff");
+        var finalHTML ="";
+        if(editDiff.length>0){
+            finalHTML += "<p><b>Edited Records:</b></p>";
+            finalHTML += "<table>";
+            for(i=0;i<editDiff.length;i++){
+                finalHTML += "<tr>";
+                finalHTML += htmlCleanUp(editDiff[i].innerHTML);
+                finalHTML += "</tr>";
             }
+            finalHTML += "</table><br/>";
         }
-        index++;
-      {% endfor %}
-    }
+
+        if(addDiff.length>0){
+            finalHTML += "<p><b>Added Records:</b></p>";
+            finalHTML += "<table>";
+            for(i=0;i<addDiff.length;i++){
+                finalHTML += "<tr style=\"color: #24F812;\">";
+                finalHTML += htmlCleanUp(addDiff[i].innerHTML);
+                finalHTML += "</tr>";
+            }
+            finalHTML += "</table><br/>";
+        }
+
+        if(deleteDiff.length>0){
+            finalHTML += "<p><b>Deleted Records:</b></p>";
+            finalHTML += "<table>";
+            for(i=0;i<deleteDiff.length;i++){
+                finalHTML += "<tr style=\"color: #F52407\">";
+                finalHTML += htmlCleanUp(deleteDiff[i].innerHTML);
+                finalHTML += "</tr>";
+            }
+            finalHTML += "</table><br/>";
+        }
+
+        $('#modal-code-content').html(finalHTML);
+        modal.modal('show');
+    });
+
+    function detectUnsavedChanges(table){
+        var unsavedChanges = false;
+        var index = 0;
+        var origcount = {{ records|length }};
+        var count = table.page.info().recordsTotal;
+
+
+        if(nEditing!=null){
+             var htmlIndex = nEditing._DT_RowIndex;
+             var deleteCount = deleteDiff.length;
+             var originalIndex = htmlIndex;
+             if(htmlIndex>=lastDeletedIndex){
+                 originalIndex += deleteCount;
+             }
+             if(htmlIndex >= origcount){
+                  //Newly added record is being edited.
+                  unsavedChanges = true;
+             }
+
+
+              {% for record in records %}
+                if(index == originalIndex){
+                    //Get server side record data
+                    var origrecordttl = '{{ record.ttl }}';
+                    var origrecordname = '{{ (record.name,domain.name) | display_record_name }}';
+                    var origrecorddata = '{{ record.data }}';
+                    origrecorddata = origrecorddata.replace(/&#34;/g, '\"');
+                    var origrecordtype = '{{ record.type }}';
+
+                    //Get client-side record data for matching index
+                    var editrecordttl =  table.row(htmlIndex).data()[3];
+                    var editrecordname = table.row(htmlIndex).data()[0];
+                    var editrecorddata = table.row(htmlIndex).data()[4];
+                    var editrecordtype = table.row(htmlIndex).data()[1];
+                    if(origrecordttl != editrecordttl || origrecordname != editrecordname || origrecorddata != editrecorddata || origrecordtype != editrecordtype)
+                    {
+                        unsavedChanges = true;
+                        if(origrecordname!=editrecordname){
+                            nEditing.cells[0].style.fontWeight = 'bold';
+                        }
+                        if(origrecordtype != editrecordtype){
+                            nEditing.cells[1].style.fontWeight = 'bold';
+                        }
+                        if(origrecordttl != editrecordttl){
+                            nEditing.cells[3].style.fontWeight = 'bold';
+                        }
+
+                        if(origrecorddata != editrecorddata){
+                            nEditing.cells[4].style.fontWeight = 'bold';
+                        }
+
+                        if(!editDiff.includes(nEditing) && nBefore!=nEditing.innerHTML){
+                            editDiff.push(nEditing);
+                        }
+
+                    }
+                    else{
+                        //Nothing changed, reset fontweight for all columns. Setting this on the row does not work. Also, remove the changes from diff.
+                        nEditing.cells[0].style.fontWeight = 'normal';
+                        nEditing.cells[1].style.fontWeight = 'normal';
+                        nEditing.cells[3].style.fontWeight = 'normal';
+                        nEditing.cells[4].style.fontWeight = 'normal';
+                        editDiff.splice(editDiff.indexOf(nEditing),1);
+                        setUnsavedChangesWarning();
+                    }
+                }
+
+            index++;
+          {% endfor %}
+      }
+
     unsavedChangesWarning(unsavedChanges);
    }
 
@@ -367,7 +489,7 @@
         var message = 'There are unsaved changes on the zone. Please click Apply Changes to save all your changes.';
         var group = document.getElementById("add-record-button").closest('.box-body');
         group.classList.add('has-error');
-        
+
         var helpBlock = group.querySelector(".help-block");
         if (helpBlock.classList){
              helpBlock.classList.remove('hidden');
@@ -391,7 +513,29 @@
               helpBlock.className += ' ' + "hidden";
      }    
    }
-    
+   
+   function htmlCleanUp(htmlString){
+        
+        var delButton = "<button type=\"button\" class=\"btn btn-flat btn-danger button_delete\" id=\"delete_button\">Delete&nbsp;<i class=\"fa fa-trash\"></i></button>";
+        var editButton = "<button type=\"button\" class=\"btn btn-flat btn-warning button_edit\" id=\"edit_button\">Edit&nbsp;<i class=\"fa fa-edit\"></i></button>";
+        htmlString = htmlString.replace(delButton, "");
+        htmlString = htmlString.replace(editButton, "");
+        htmlString = htmlString.replace(/\r?\n|\r/g, ""); //remove new lines
+        htmlString = htmlString.replace(/\s\s+/g, ""); //remove multiple spaces
+        htmlString = htmlString.replace(/<td><\/td>/g,""); //remove empty cols
+        htmlString = htmlString.replace(/<td width=\"6%\"><\/td>/g, "");
+        htmlString = htmlString.replace(/<td>Active<\/td>/g,"");
+        htmlString = htmlString.replace(/<td>Disabled<\/td>/g,"");
+        htmlString = htmlString.replace(/<td>/g, "<td style=\"padding:0 15px 0 15px;\">");
+        return htmlString;
+   }
+
+   function setUnsavedChangesWarning(){
+       if(editDiff.length==0&&addDiff.length==0&&deleteDiff.length==0){
+           unsavedChangesWarning(false); //no changes
+       }
+   }
+
     //handle update_from_master button
     $(document.body).on("click", ".button_update_from_master", function (e) {
             var domain = $(this).prop('id');
@@ -587,5 +731,32 @@
     </div>
     <!-- /.modal-dialog -->
 </div>
+<!-- Show Diff Button Display Content -->
+<div class="modal fade" id="modal_show_diff">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                    aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <h4 class="modal-title">Diff Details</h4>
+            </div>
+            <div class="modal-body">
+                <pre><code id="modal-code-content"></code></pre>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-flat btn-default pull-right"
+                    data-dismiss="modal">Close</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
 {% endblock %}
+
+
+
+
 
