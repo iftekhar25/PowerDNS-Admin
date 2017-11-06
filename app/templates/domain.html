@@ -236,6 +236,15 @@
                     setUnsavedChangesWarning();
             }
             else{
+                    //If an existing row is edited and then deleted, remove it from edit diff list.
+                    if(editDiff.includes(nRow)){
+                        editDiff.splice(editDiff.indexOf(nRow,1));
+                    }
+                    //Set the font of previously edited and now deleted row to normal
+                    nRow.cells[0].style.fontWeight = 'normal';
+                    nRow.cells[1].style.fontWeight = 'normal';
+                    nRow.cells[3].style.fontWeight = 'normal';
+                    nRow.cells[4].style.fontWeight = 'normal';
                     deleteDiff.push(nRow);
                     lastDeletedIndex = nRow._DT_RowIndex;
                     unsavedChangesWarning(true);
@@ -529,6 +538,7 @@
         htmlString = htmlString.replace(/<\!-- <\/td>--><\!-- hidden column that we can sort on -->/g, "");
         htmlString = htmlString.replace(/<td class=\"length-break\" id=\"record_data\">/g,"<td style=\"padding:0 15px 0 15px;\">");
         htmlString = htmlString.replace(/<td class=\"sorting_2\">/g,"<td style=\"padding:0 15px 0 0;\">");
+        htmlString = htmlString.replace(/<td style=\"font-weight: normal;\">/g,"<td style=\"padding:0 15px 0 15px;\">");
         return htmlString;
    }
 
