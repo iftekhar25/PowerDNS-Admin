@@ -528,6 +528,7 @@
         htmlString = htmlString.replace(/<td>/g, "<td style=\"padding:0 15px 0 15px;\">");
         htmlString = htmlString.replace(/<\!-- <\/td>--><\!-- hidden column that we can sort on -->/g, "");
         htmlString = htmlString.replace(/<td class=\"length-break\" id=\"record_data\">/g,"<td style=\"padding:0 15px 0 15px;\">");
+        htmlString = htmlString.replace(/<td class=\"sorting_2\">/g,"<td style=\"padding:0 15px 0 0;\">");
         return htmlString;
    }
 
