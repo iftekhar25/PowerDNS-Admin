@@ -472,15 +472,14 @@
                         nEditing.cells[3].style.fontWeight = 'normal';
                         nEditing.cells[4].style.fontWeight = 'normal';
                         editDiff.splice(editDiff.indexOf(nEditing),1);
-                        setUnsavedChangesWarning();
                     }
                 }
 
             index++;
           {% endfor %}
+          setUnsavedChangesWarning();
       }
 
-    unsavedChangesWarning(unsavedChanges);
    }
 
    function unsavedChangesWarning(unsavedChanges){
@@ -536,6 +535,10 @@
        if(editDiff.length==0&&addDiff.length==0&&deleteDiff.length==0){
            unsavedChangesWarning(false); //no changes
        }
+       else{
+           unsavedChangesWarning(true);
+       }
+
    }
 
     //handle update_from_master button
