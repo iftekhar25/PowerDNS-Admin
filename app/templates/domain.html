@@ -386,7 +386,7 @@
             finalHTML += "<table>";
             for(i=0;i<editDiff.length;i++){
                 finalHTML += "<tr>";
-                finalHTML += htmlCleanUp(editDiff[i].innerHTML);
+                finalHTML += cellStyling(editDiff[i]);
                 finalHTML += "</tr>";
             }
             finalHTML += "</table><br/>";
@@ -397,7 +397,7 @@
             finalHTML += "<table>";
             for(i=0;i<addDiff.length;i++){
                 finalHTML += "<tr style=\"color: #24F812;\">";
-                finalHTML += htmlCleanUp(addDiff[i].innerHTML);
+                finalHTML += cellStyling(addDiff[i]);
                 finalHTML += "</tr>";
             }
             finalHTML += "</table><br/>";
@@ -408,7 +408,7 @@
             finalHTML += "<table>";
             for(i=0;i<deleteDiff.length;i++){
                 finalHTML += "<tr style=\"color: #F52407\">";
-                finalHTML += htmlCleanUp(deleteDiff[i].innerHTML);
+                finalHTML += cellStyling(deleteDiff[i]);
                 finalHTML += "</tr>";
             }
             finalHTML += "</table><br/>";
@@ -522,25 +522,78 @@
      }
    }
 
-   function htmlCleanUp(htmlString){
+   function cellStyling(htmlTableRowElement){
+      //Take the data from each row element and render them in the tables for edit, add, delete diff lists.
+      var htmlString = "";
+      var cell0 = false;
+      var cell1 = false;
+      var cell3 = false;
+      var cell4 = false;
+      if(htmlTableRowElement.cells[0].style.fontWeight == 'bold'){
+          cell0 = true;
+      }
+      if(htmlTableRowElement.cells[1].style.fontWeight == 'bold'){
+          cell1 = true;
+      }
+      if(htmlTableRowElement.cells[3].style.fontWeight == 'bold'){
+          cell3 = true;
+      }
+      if(htmlTableRowElement.cells[4].style.fontWeight == 'bold'){
+          cell4 = true;
+      }
 
-        var delButton = "<button type=\"button\" class=\"btn btn-flat btn-danger button_delete\" id=\"delete_button\">Delete&nbsp;<i class=\"fa fa-trash\"></i></button>";
-        var editButton = "<button type=\"button\" class=\"btn btn-flat btn-warning button_edit\" id=\"edit_button\">Edit&nbsp;<i class=\"fa fa-edit\"></i></button>";
-        htmlString = htmlString.replace(delButton, "");
-        htmlString = htmlString.replace(editButton, "");
-        htmlString = htmlString.replace(/\r?\n|\r/g, ""); //remove new lines
-        htmlString = htmlString.replace(/\s\s+/g, ""); //remove multiple spaces
-        htmlString = htmlString.replace(/<td><\/td>/g,""); //remove empty cols
-        htmlString = htmlString.replace(/<td width=\"6%\"><\/td>/g, "");
-        htmlString = htmlString.replace(/<td>Active<\/td>/g,"");
-        htmlString = htmlString.replace(/<td>Disabled<\/td>/g,"");
-        htmlString = htmlString.replace(/<td>/g, "<td style=\"padding:0 15px 0 15px;\">");
-        htmlString = htmlString.replace(/<\!-- <\/td>--><\!-- hidden column that we can sort on -->/g, "");
-        htmlString = htmlString.replace(/<td class=\"length-break\" id=\"record_data\">/g,"<td style=\"padding:0 15px 0 15px;\">");
-        htmlString = htmlString.replace(/<td class=\"sorting_2\">/g,"<td style=\"padding:0 15px 0 0;\">");
-        htmlString = htmlString.replace(/<td style=\"font-weight: normal;\">/g,"<td style=\"padding:0 15px 0 15px;\">");
-        return htmlString;
+      var record_name = htmlTableRowElement.cells[0].innerHTML;
+      var record_type = htmlTableRowElement.cells[1].innerHTML;
+      var record_ttl = htmlTableRowElement.cells[3].innerHTML;
+      var record_data = htmlTableRowElement.cells[4].innerHTML;
+
+      record_name = record_name.replace(/\r?\n|\r/g, "");
+      record_type = record_type.replace(/\r?\n|\r/g, "");
+      record_ttl = record_ttl.replace(/\r?\n|\r/g, "");
+      record_data = record_data.replace(/\r?\n|\r/g, "");
+      record_name = record_name.replace(/\s\s+/g, "");
+      record_type = record_type.replace(/\s\s+/g, "");
+      record_ttl = record_ttl.replace(/\s\s+/g, "");
+      record_data = record_data.replace(/\s\s+/g, "");
+
+
+      var tdforcell0 = "<td style=\"padding:0 15px 0 0;\">";
+      var tdforcell0bold =  "<td style=\"padding:0 15px 0 0; font-weight:bold;\">";
+      var tdforcell = "<td style=\"padding:0 15px 0 15px;\">";
+      var tdforcellbold = "<td style=\"padding:0 15px 0 15px; font-weight:bold;\">";
+      var tdclose = "<\/td>";
+
+      if(cell0){htmlString += tdforcell0bold;}
+      else{htmlString += tdforcell0;}
+
+      htmlString += record_name;
+
+      htmlString += tdclose;
+
+      if(cell1){htmlString += tdforcellbold;}
+      else{htmlString += tdforcell;}
+
+      htmlString += record_type;
+
+      htmlString += tdclose;
+
+      if(cell3){htmlString += tdforcellbold;}
+      else{htmlString += tdforcell;}
+
+      htmlString += record_ttl;
+
+      htmlString += tdclose;
+
+      if(cell4){htmlString += tdforcellbold;}
+      else{htmlString += tdforcell;}
+
+      htmlString += record_data;
+
+      htmlString += tdclose;
+
+      return htmlString;
    }
+
 
    function setUnsavedChangesWarning(){
        if(editDiff.length==0&&addDiff.length==0&&deleteDiff.length==0){
