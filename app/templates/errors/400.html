@@ -21,6 +21,14 @@
     <div class="error-page">
         <h2 class="headline text-yellow">400</h2>
         <div class="error-content">
+            {% if msg %}
+            <h3>
+                <i class="fa fa-warning text-yellow"></i> {{msg}}
+            </h3>
+                <p> 
+                    Please try to give a different domain name. <a href="{{url_for('domain_add') }}"> Go Back</a>
+                </p>
+            {% else %}
             <h3>
                 <i class="fa fa-warning text-yellow"></i> Oops! Bad request
             </h3>
@@ -28,6 +36,7 @@
                 The server refused to process your request and return a 400 error.
                 You may <a href="{{ url_for('dashboard') }}">return to the dashboard</a>.
             </p>
+           {% endif %}
         </div>
         <!-- /.error-content -->
     </div>
